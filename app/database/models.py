@@ -16,21 +16,29 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger)
 
-class Folder(Base):
-    __tablename__ = 'folders'
-    
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(25))
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+# class Folder(Base):
+#     __tablename__ = 'folders'
+#     
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     name: Mapped[str] = mapped_column(String(25))
+#     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
 class Module(Base):
     __tablename__ = 'modules'
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(25))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+
+class Word(Base):
+    __tablename__ = 'words'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
     word: Mapped[str] = mapped_column(String(25))
-    translate: Mapped[str] = mapped_column(String(25))
-    folder_id: Mapped[int] = mapped_column(ForeignKey('folders.id'))
+    translation: Mapped[str] = mapped_column(String(25))
+    module_id: Mapped[int] = mapped_column(ForeignKey('modules.id'))
 
 async def async_main():
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+        
