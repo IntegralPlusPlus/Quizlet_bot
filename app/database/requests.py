@@ -2,23 +2,25 @@ from sqlalchemy import select, delete
 from app.database.models import async_session
 from app.database.models import User, Module, Word
 
-async def set_user(user_id, _username):
+
+async def set_user(tg_id, username):
     async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == user_id, User.username == _username))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
         if user is None:
-            session.add(User(tg_id = user_id, username = _username))
+            session.add(User(tg_id=tg_id, username=username))
             await session.commit()
 
-async def set_module(user_id, module_name):
+
+async def set_module(tg_id, module_name):
     async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == user_id))
-        
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
         if user is None:
-            user = User(tg_id=user_id)
+            user = User(tg_id=tg_id)
             session.add(user)
             await session.commit()
-            await session.refresh(user) 
+            await session.refresh(user)
 
         module = await session.scalar(
             select(Module).where(Module.name == module_name, Module.user_id == user.id)
@@ -28,57 +30,94 @@ async def set_module(user_id, module_name):
             session.add(Module(name=module_name, user_id=user.id))
             await session.commit()
 
-async def get_modules(user_id):
-    async with async_session() as session:
-        modules = await session.scalars(select(Module.name).where(Module.user_id == user_id))
 
+async def get_modules(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if not user:
+            return []
+
+        modules = await session.scalars(select(Module.name).where(Module.user_id == user.id))
         return modules.all()
 
-async def set_word(_user_id, _module_name, _word, _translation):
-    async with async_session() as session:
-        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id,
-                                                                  Module.name == _module_name))
 
-        if _module_id is not None:
-            new_word = await session.scalar(select(Word).where(Word.word == _word, 
-                                                           Word.translation == _translation, 
-                                                           Word.module_id == _module_id))
+async def set_word(tg_id, module_name, word, translation):
+    async with async_session() as session:
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if not user:
+            return
+
+        module_id = await session.scalar(
+            select(Module.id).where(Module.user_id == user.id, Module.name == module_name)
+        )
+
+        if module_id is not None:
+            new_word = await session.scalar(
+                select(Word).where(
+                    Word.word == word,
+                    Word.translation == translation,
+                    Word.module_id == module_id
+                )
+            )
 
             if new_word is None:
-                session.add(Word(word = _word, translation = _translation, module_id = _module_id))
+                session.add(Word(word=word, translation=translation, module_id=module_id))
                 await session.commit()
 
-async def get_words(_user_id, _module_name):
+
+async def get_words(tg_id, module_name):
     async with async_session() as session:
-        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id, 
-                                                                  Module.name == _module_name))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if not user:
+            return []
 
-        if _module_id is not None:
-            words = await session.execute(select(Word.word, Word.translation).where(Word.module_id == _module_id))
+        module_id = await session.scalar(
+            select(Module.id).where(Module.user_id == user.id, Module.name == module_name)
+        )
 
-            return words.all()
+        if module_id is not None:
+            result = await session.execute(
+                select(Word.word, Word.translation).where(Word.module_id == module_id)
+            )
+            return result.all()
+        return []
 
-async def delete_module(_user_id, _module_name):
+
+async def delete_module(tg_id, module_name):
     async with async_session() as session:
-        module = await session.scalar(select(Module).where(Module.user_id == _user_id, 
-                                                           Module.name == _module_name))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if not user:
+            return
 
-        if module is not None:
+        module = await session.scalar(
+            select(Module).where(Module.user_id == user.id, Module.name == module_name)
+        )
+
+        if module:
             await session.execute(delete(Word).where(Word.module_id == module.id))
             await session.delete(module)
-            
             await session.commit()
 
-async def delete_word(_user_id, _module_name, _word, _translation):
+
+async def delete_word(tg_id, module_name, word, translation):
     async with async_session() as session:
-        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id, 
-                                                                  Module.name == _module_name))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if not user:
+            return
 
-        if _module_id is not None:
-            word = await session.scalar(select(Word).where(Word.word == _word, 
-                                                          Word.translation == _translation, 
-                                                          Word.module_id == _module_id))
+        module_id = await session.scalar(
+            select(Module.id).where(Module.user_id == user.id, Module.name == module_name)
+        )
 
-            if word is not None:
-                await session.delete(word)
+        if module_id is not None:
+            word_obj = await session.scalar(
+                select(Word).where(
+                    Word.word == word,
+                    Word.translation == translation,
+                    Word.module_id == module_id
+                )
+            )
+
+            if word_obj:
+                await session.delete(word_obj)
                 await session.commit()
