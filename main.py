@@ -1,4 +1,3 @@
-from config import bot_token
 import asyncio
 import logging
 import os
@@ -10,6 +9,8 @@ import app.handlers.show_words
 import app.handlers.add_words
 import app.handlers.delete_words
 import app.handlers.repeat_words
+
+bot_token = os.getenv('BOT_TOKEN')
 
 async def main():
     #logging.basicConfig(level=logging.INFO)

@@ -3,9 +3,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy import event
 import os
-from config import DATABASE_URL as DATABASE_URL_CONFIG
+#from config import DATABASE_URL as DATABASE_URL_CONFIG
 
-DATABASE_URL = os.getenv("DATABASE_URL", DATABASE_URL_CONFIG)
+DATABASE_URL = os.getenv("DATABASE_URL")
+#DATABASE_URL = os.getenv("DATABASE_URL", DATABASE_URL_CONFIG)
 #DATABASE_URL = "sqlite+aiosqlite:///database.sqlite3"
 engine = create_async_engine(url=DATABASE_URL, echo=False)
 async_session = async_sessionmaker(engine)

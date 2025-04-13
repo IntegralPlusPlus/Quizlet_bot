@@ -8,7 +8,6 @@ import app.keyboards as kb
 import app.database.requests as requests
 
 from app.handlers.main_handlers import router
-from config import CHANGE_DATABASE
 
 class CreateModule(StatesGroup):
     name = State()
@@ -43,8 +42,7 @@ async def module_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     module_name = message.text
     
-    if CHANGE_DATABASE:
-        await requests.set_module(message.from_user.id, module_name)
+    await requests.set_module(message.from_user.id, module_name)
 
     await message.answer(f"Модуль '{module_name}' успешно создан!\n", reply_markup=kb.add_new_word_to_module)
 
@@ -68,8 +66,7 @@ async def write_word_and_translation(message: Message, state: FSMContext):
     word = data.get('word')
     translation = data.get('translation')
 
-    if CHANGE_DATABASE:
-        await requests.set_word(message.from_user.id, module_name, word, translation)
+    await requests.set_word(message.from_user.id, module_name, word, translation)
 
     await message.answer(
         f"Слово '{word}' с переводом '{translation}' успешно добавлено в модуль '{module_name}'\n"

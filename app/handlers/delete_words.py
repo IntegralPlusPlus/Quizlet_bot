@@ -8,7 +8,6 @@ import app.keyboards as kb
 import app.database.requests as requests
 
 from app.handlers.main_handlers import router
-from config import CHANGE_DATABASE
 
 class DeleteWords(StatesGroup):
     module_name = State()
@@ -39,8 +38,7 @@ async def delete_all_module(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(f"⌛️ Удаление модуля '{module_name}', это может занять некоторое время...")
 
-    if CHANGE_DATABASE:
-        await requests.delete_module(callback.from_user.id, module_name)
+    await requests.delete_module(callback.from_user.id, module_name)
     
     await callback.message.answer(f"Модуль '{module_name}' успешно удален!\n",
                                   reply_markup=kb.to_start_menu)
@@ -64,8 +62,7 @@ async def delete_word(callback: CallbackQuery, state: FSMContext):
     combination = callback.data[13:]
     word, translation = combination.split('|p|a|s|s|w|o|r|d|')
 
-    if CHANGE_DATABASE:
-        await requests.delete_word(callback.from_user.id, module_name, word, translation)
+    await requests.delete_word(callback.from_user.id, module_name, word, translation)
     
     await callback.message.answer(f"Слово '{word}' и перевод '{translation}' успешно удалены из модуля '{module_name}'!\n",
                                   reply_markup=kb.to_start_menu)
