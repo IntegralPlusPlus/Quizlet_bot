@@ -37,6 +37,8 @@ async def delete_all_module(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     module_name = data.get('module_name')
 
+    await callback.message.answer(f"⌛️ Удаление модуля '{module_name}', это может занять некоторое время...")
+
     if CHANGE_DATABASE:
         await requests.delete_module(callback.from_user.id, module_name)
     
