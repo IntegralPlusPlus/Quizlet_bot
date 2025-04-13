@@ -12,7 +12,7 @@ router = Router()
 
 @router.message(CommandStart())
 async def start_menu(message: Message):
-    await requests.set_user(message.from_user.id)
+    await requests.set_user(message.from_user.id, message.from_user.username)
     
     await message.answer("Здравствуйте! Приглашаем вас использовать Telegram-бота, выполняющего функции личного Quizlet'а! \n" + \
                         'Предлагаю начать', reply_markup = kb.start_menu)

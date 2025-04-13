@@ -12,10 +12,20 @@ async def set_user(user_id):
 
 async def set_module(user_id, module_name):
     async with async_session() as session:
-        module = await session.scalar(select(Module).where(Module.name == module_name, Module.user_id == user_id))
+        user = await session.scalar(select(User).where(User.tg_id == user_id))
         
+        if user is None:
+            user = User(tg_id=user_id)
+            session.add(user)
+            await session.commit()
+            await session.refresh(user) 
+
+        module = await session.scalar(
+            select(Module).where(Module.name == module_name, Module.user_id == user.id)
+        )
+
         if module is None:
-            session.add(Module(name = module_name, user_id = user_id))
+            session.add(Module(name=module_name, user_id=user.id))
             await session.commit()
 
 async def get_modules(user_id):
