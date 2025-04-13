@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from app.database.models import async_session
 from app.database.models import User, Module, Word
 
@@ -47,3 +47,28 @@ async def get_words(_user_id, _module_name):
             words = await session.execute(select(Word.word, Word.translation).where(Word.module_id == _module_id))
 
             return words.all()
+
+async def delete_module(_user_id, _module_name):
+    async with async_session() as session:
+        module = await session.scalar(select(Module).where(Module.user_id == _user_id, 
+                                                           Module.name == _module_name))
+
+        if module is not None:
+            await session.execute(delete(Word).where(Word.module_id == module.id))
+            await session.delete(module)
+            
+            await session.commit()
+
+async def delete_word(_user_id, _module_name, _word, _translation):
+    async with async_session() as session:
+        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id, 
+                                                                  Module.name == _module_name))
+
+        if _module_id is not None:
+            word = await session.scalar(select(Word).where(Word.word == _word, 
+                                                          Word.translation == _translation, 
+                                                          Word.module_id == _module_id))
+
+            if word is not None:
+                await session.delete(word)
+                await session.commit()

@@ -8,6 +8,7 @@ from app.database.models import async_main
 from app.handlers.main_handlers import router
 import app.handlers.show_words
 import app.handlers.add_words
+import app.handlers.delete_words
 
 async def main():
     #logging.basicConfig(level=logging.INFO)

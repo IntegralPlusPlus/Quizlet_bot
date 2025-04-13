@@ -45,7 +45,7 @@ async def module_name(message: Message, state: FSMContext):
     if CHANGE_DATABASE:
         await requests.set_module(message.from_user.id, module_name)
 
-    await message.answer(f"Модуль {module_name} успешно создан!\n", reply_markup=kb.add_new_word_to_module)
+    await message.answer(f"Модуль '{module_name}' успешно создан!\n", reply_markup=kb.add_new_word_to_module)
 
 @router.callback_query(F.data == 'add_word')
 async def add_word(callback: CallbackQuery, state: FSMContext):
