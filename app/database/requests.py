@@ -24,9 +24,10 @@ async def get_modules(user_id):
 
         return modules.all()
 
-async def set_word(_module_name, _word, _translation):
+async def set_word(_user_id, _module_name, _word, _translation):
     async with async_session() as session:
-        _module_id = await session.scalar(select(Module.id).where(Module.name == _module_name))
+        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id,
+                                                                  Module.name == _module_name))
 
         if _module_id is not None:
             new_word = await session.scalar(select(Word).where(Word.word == _word, 
@@ -36,3 +37,13 @@ async def set_word(_module_name, _word, _translation):
             if new_word is None:
                 session.add(Word(word = _word, translation = _translation, module_id = _module_id))
                 await session.commit()
+
+async def get_words(_user_id, _module_name):
+    async with async_session() as session:
+        _module_id = await session.scalar(select(Module.id).where(Module.user_id == _user_id, 
+                                                                  Module.name == _module_name))
+
+        if _module_id is not None:
+            words = await session.execute(select(Word.word, Word.translation).where(Word.module_id == _module_id))
+
+            return words.all()

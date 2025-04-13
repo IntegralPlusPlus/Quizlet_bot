@@ -7,8 +7,9 @@ from aiogram.types import ReplyKeyboardRemove
 
 import app.keyboards as kb
 import app.database.requests as requests
+import app.basic_functions as basicFuns
 
-USE_DATABASE = True
+CHANGE_DATABASE = True
 
 class CreateModule(StatesGroup):
     name = State()
@@ -23,7 +24,6 @@ async def start_menu(message: Message):
     
     await message.answer("Здравствуйте! Приглашаем вас использовать Telegram-бота, выполняющего функции личного Quizlet'а! \n" + \
                         'Предлагаю начать', reply_markup = kb.start_menu)
-    await message.delete()
 
 @router.message(F.text == 'Создать новый модуль')
 async def create_module(message: Message, state: FSMContext):
@@ -31,23 +31,49 @@ async def create_module(message: Message, state: FSMContext):
     await state.set_state(CreateModule.name)
 
 @router.message(F.text == 'Добавить слово в существующий модуль')
-async def show_modules(message: Message):
+async def show_modules_to_add_words(message: Message):
     await message.answer('Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
-    
+
     await message.answer("Выберите модуль, в который хотите добавить слово", 
-                         reply_markup=await kb.show_modules_keyboard(message.from_user.id))
+                         reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_ADD_WORDS))
     await message.delete()
+
+@router.message(F.text == 'Показать слова в модуле')
+async def show_modules_to_print(message: Message):
+    await message.answer('Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
+
+    await message.answer("Выберите модуль, в котором хотите вывести все слова и их переводы", 
+                         reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_PRINT_MODULE))
+    await message.delete()
+
+@router.callback_query(F.data.startswith('print_module__'))
+async def print_words_in_module(callback: CallbackQuery):
+    await callback.answer()
+    module_name = callback.data[14:]
+
+    words = await requests.get_words(callback.from_user.id, module_name)
+    words_str = basicFuns.get_words_to_print(words)
+    await callback.message.answer(words_str, reply_markup=kb.to_start_menu)
+
+@router.callback_query(F.data.startswith('add_word_module__'))
+async def add_word_to_current_module(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    module_name = callback.data[17:]
+
+    await state.update_data(name=module_name)
+    await callback.message.answer(f"Вы выбрали модуль '{module_name}'.\nВведите слово, которое вы хотите добавить в модуль", 
+                                  reply_markup=ReplyKeyboardRemove())
+    await state.set_state(CreateModule.word)
 
 @router.message(CreateModule.name)
 async def module_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
-    module_name = message.text #(await state.get_data())['name']
+    module_name = message.text
     
-    if USE_DATABASE:
+    if CHANGE_DATABASE:
         await requests.set_module(message.from_user.id, module_name)
 
     await message.answer(f"Модуль {module_name} успешно создан!\n", reply_markup=kb.to_start_menu)
-    #await state.set_state(CreateWord.word)
 
 @router.callback_query(F.data == 'to_start_menu')
 async def main_menu(callback: CallbackQuery):
@@ -75,13 +101,10 @@ async def write_word_and_translation(message: Message, state: FSMContext):
     word = data.get('word')
     translation = data.get('translation')
 
-    if USE_DATABASE:
-        await requests.set_word(module_name, word, translation)
+    if CHANGE_DATABASE:
+        await requests.set_word(message.from_user.id, module_name, word, translation)
 
     await message.answer(
         f"Слово '{word}' с переводом '{translation}' успешно добавлено в модуль '{module_name}'\n"
         "Вы можете продолжить работу с ботом, выбрав один из пунктов меню",
-        reply_markup=kb.to_start_menu
-    )
-
-    #await state.clear()
+        reply_markup=kb.to_start_menu)
