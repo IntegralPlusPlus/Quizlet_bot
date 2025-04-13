@@ -8,6 +8,8 @@ from aiogram.types import ReplyKeyboardRemove
 import app.keyboards as kb
 import app.database.requests as requests
 
+USE_DATABASE = True
+
 class CreateModule(StatesGroup):
     name = State()
     word = State()
@@ -27,12 +29,22 @@ async def start_menu(message: Message):
 async def create_module(message: Message, state: FSMContext):
     await message.answer("Введите название модуля", reply_markup=ReplyKeyboardRemove())
     await state.set_state(CreateModule.name)
+
+@router.message(F.text == 'Добавить слово в существующий модуль')
+async def show_modules(message: Message):
+    await message.answer('Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
     
+    await message.answer("Выберите модуль, в который хотите добавить слово", 
+                         reply_markup=await kb.show_modules_keyboard(message.from_user.id))
+    await message.delete()
+
 @router.message(CreateModule.name)
 async def module_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     module_name = message.text #(await state.get_data())['name']
-    #await requests.set_module(message.from_user.id, module_name)
+    
+    if USE_DATABASE:
+        await requests.set_module(message.from_user.id, module_name)
 
     await message.answer(f"Модуль {module_name} успешно создан!\n", reply_markup=kb.to_start_menu)
     #await state.set_state(CreateWord.word)
@@ -62,7 +74,10 @@ async def write_word_and_translation(message: Message, state: FSMContext):
     module_name = data.get('name')
     word = data.get('word')
     translation = data.get('translation')
-    
+
+    if USE_DATABASE:
+        await requests.set_word(module_name, word, translation)
+
     await message.answer(
         f"Слово '{word}' с переводом '{translation}' успешно добавлено в модуль '{module_name}'\n"
         "Вы можете продолжить работу с ботом, выбрав один из пунктов меню",

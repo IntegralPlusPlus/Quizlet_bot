@@ -17,3 +17,22 @@ async def set_module(user_id, module_name):
         if module is None:
             session.add(Module(name = module_name, user_id = user_id))
             await session.commit()
+
+async def get_modules(user_id):
+    async with async_session() as session:
+        modules = await session.scalars(select(Module.name).where(Module.user_id == user_id))
+
+        return modules.all()
+
+async def set_word(_module_name, _word, _translation):
+    async with async_session() as session:
+        _module_id = await session.scalar(select(Module.id).where(Module.name == _module_name))
+
+        if _module_id is not None:
+            new_word = await session.scalar(select(Word).where(Word.word == _word, 
+                                                           Word.translation == _translation, 
+                                                           Word.module_id == _module_id))
+
+            if new_word is None:
+                session.add(Word(word = _word, translation = _translation, module_id = _module_id))
+                await session.commit()

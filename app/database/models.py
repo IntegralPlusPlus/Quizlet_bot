@@ -16,13 +16,6 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger)
 
-# class Folder(Base):
-#     __tablename__ = 'folders'
-#     
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     name: Mapped[str] = mapped_column(String(25))
-#     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-
 class Module(Base):
     __tablename__ = 'modules'
     

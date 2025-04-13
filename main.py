@@ -3,9 +3,7 @@ import asyncio
 import logging
 import os
 
-from aiogram import Bot, Dispatcher, F
-from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram import Bot, Dispatcher
 from app.database.models import async_main
 from app.handlers import router
 
