@@ -2,12 +2,12 @@ from sqlalchemy import select, delete
 from app.database.models import async_session
 from app.database.models import User, Module, Word
 
-async def set_user(user_id):
+async def set_user(user_id, _username):
     async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == user_id))
+        user = await session.scalar(select(User).where(User.tg_id == user_id, User.username == _username))
 
         if user is None:
-            session.add(User(tg_id = user_id))
+            session.add(User(tg_id = user_id, username = _username))
             await session.commit()
 
 async def set_module(user_id, module_name):
