@@ -5,7 +5,9 @@ import os
 
 from aiogram import Bot, Dispatcher
 from app.database.models import async_main
-from app.handlers import router
+from app.handlers.main_handlers import router
+import app.handlers.show_words
+import app.handlers.add_words
 
 async def main():
     #logging.basicConfig(level=logging.INFO)

@@ -21,11 +21,15 @@ start_menu = ReplyKeyboardMarkup(
     resize_keyboard = True, input_field_placeholder = "Выберите нужный пункт меню..."
 )
 
-to_start_menu = InlineKeyboardMarkup(
+add_new_word_to_module = InlineKeyboardMarkup(
     inline_keyboard = [
         [InlineKeyboardButton(text = 'Вернуться в главное меню', callback_data = 'to_start_menu'),
          InlineKeyboardButton(text = 'Добавить новое слово в модуль', callback_data = 'add_word')],
     ],
+)
+
+to_start_menu = InlineKeyboardMarkup(
+    inline_keyboard = [[InlineKeyboardButton(text = 'Вернуться в главное меню', callback_data = 'to_start_menu')]],
 )
 
 async def show_modules(user_id, show_status):
