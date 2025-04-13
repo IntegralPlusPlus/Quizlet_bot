@@ -17,6 +17,10 @@ async def main():
     await async_main()
     
     bot = Bot(token = bot_token)
+    
+    print("TOKEN:", os.getenv("BOT_TOKEN"))
+    print("DB_URL:", os.getenv("DATABASE_URL"))
+    
     dp = Dispatcher()
     dp.include_router(router)
     await dp.start_polling(bot)
