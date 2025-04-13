@@ -9,6 +9,7 @@ from app.handlers.main_handlers import router
 import app.handlers.show_words
 import app.handlers.add_words
 import app.handlers.delete_words
+import app.handlers.repeat_words
 
 async def main():
     #logging.basicConfig(level=logging.INFO)

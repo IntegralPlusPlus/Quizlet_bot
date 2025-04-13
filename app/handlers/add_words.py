@@ -7,7 +7,8 @@ from aiogram.fsm.context import FSMContext
 import app.keyboards as kb
 import app.database.requests as requests
 
-from app.handlers.main_handlers import router, CHANGE_DATABASE
+from app.handlers.main_handlers import router
+from config import CHANGE_DATABASE
 
 class CreateModule(StatesGroup):
     name = State()

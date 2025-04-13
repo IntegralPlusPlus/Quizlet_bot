@@ -8,8 +8,6 @@ from aiogram.types import ReplyKeyboardRemove
 import app.keyboards as kb
 import app.database.requests as requests
 
-CHANGE_DATABASE = True
-
 router = Router()
 
 @router.message(CommandStart())
