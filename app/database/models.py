@@ -18,7 +18,7 @@ class User(Base):
     __tablename__ = 'users'
     
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(25), nullable=False)
+    username: Mapped[str] = mapped_column(String(25), nullable=True)
     tg_id = mapped_column(BigInteger, nullable=False)
 
 class Module(Base):

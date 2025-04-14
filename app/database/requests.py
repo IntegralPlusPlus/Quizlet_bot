@@ -12,12 +12,12 @@ async def set_user(tg_id, username):
             await session.commit()
 
 
-async def set_module(tg_id, module_name):
+async def set_module(tg_id, _username, module_name):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
         if user is None:
-            user = User(tg_id=tg_id)
+            user = User(tg_id=tg_id, username=_username)
             session.add(user)
             await session.commit()
             await session.refresh(user)

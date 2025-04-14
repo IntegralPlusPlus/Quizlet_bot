@@ -42,7 +42,7 @@ async def module_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     module_name = message.text
     
-    await requests.set_module(message.from_user.id, module_name)
+    await requests.set_module(message.from_user.id, message.from_user.username, module_name)
 
     await message.answer(f"Модуль '{module_name}' успешно создан!\n", reply_markup=kb.add_new_word_to_module)
 
