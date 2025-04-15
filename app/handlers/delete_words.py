@@ -15,11 +15,11 @@ class DeleteWords(StatesGroup):
 
 @router.message(F.text == 'Удалить модуль или слово в модуле')
 async def show_modules_to_delete(message: Message, state: FSMContext):
+    await message.delete()
     await message.answer('⌛️Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
 
     await message.answer("Выберите модуль, который вы хотите удалить или модуль, в котором хотите удалить слово", 
-                         reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_DELETE))
-    await message.delete()
+                          reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_DELETE))
     await state.set_state(DeleteWords.module_id)
 
 @router.callback_query(F.data.startswith('dltmdl_'))
@@ -55,7 +55,7 @@ async def delete_all_module(callback: CallbackQuery, state: FSMContext):
  
     await requests.delete_module(callback.from_user.id, int(module_id))
     
-    await callback.message.answrt(f"✅ Модуль '{module_name}' успешно удален!\n",
+    await callback.message.answer(f"✅ Модуль '{module_name}' успешно удален!\n",
                                   reply_markup=kb.to_start_menu)
     await state.clear()
 

@@ -11,7 +11,7 @@ import app.basic_functions as basicFuns
 from app.handlers.main_handlers import router
 
 class RepeatWords(StatesGroup):
-    module_name = State()
+    module_id = State()
     word_list = State()
     current_word_index = State()
     true_answers_indexes = State()
@@ -24,21 +24,25 @@ async def show_modules_to_repeat(message: Message, state: FSMContext):
                          reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_REPEAT))
     await message.delete()
 
-async def state_setup(state: FSMContext, module_name: str, words: list):
+async def state_setup(state: FSMContext, module_id: int, words: list):
     await state.set_data({
-        'module_name': module_name,
+        'module_id': module_id,
         'word_list': words,
         'current_word_index': 0,
         'true_answers_indexes': []
     })
 
-@router.callback_query(F.data.startswith('repeat_module__'))
+@router.callback_query(F.data.startswith('rptmdl_'))
 async def repeat_module(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    module_name = callback.data[15:]
-    words = await requests.get_words(callback.from_user.id, module_name)
+    module_id = int(callback.data.removeprefix('rptmdl_').strip())
+    if not module_id:
+        await callback.message.answer("⚠️ Ошибка: имя модуля не распознано!")
+        return
 
-    await state_setup(state, module_name, words)
+    words = await requests.get_words(module_id)
+    await state_setup(state, module_id, words)
+    module_name = await requests.get_module_name_by_id(callback.from_user.id, module_id)
 
     await callback.message.answer(f"Вы выбрали модуль '{module_name}', вы готовы начать повторять краточки?",
                                   reply_markup=kb.start_repeat_cards)
@@ -51,7 +55,7 @@ async def repeat_cards(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
 
-    module_name = data.get('module_name')
+    module_id = data.get('module_id')
     words = data.get('word_list', [])
     _current_word_index = data.get('current_word_index')
     true_indexes = data.get('true_answers_indexes', [])
@@ -65,8 +69,8 @@ async def repeat_cards(callback: CallbackQuery, state: FSMContext):
         if _current_word_index == 0:
             answer = "Начинаем повторять карточки!\n"
         
-        word = basicFuns.escape_md2(words[_current_word_index][0])
-        translation = basicFuns.escape_md2(words[_current_word_index][1])
+        word = basicFuns.escape_md2(words[_current_word_index].word)
+        translation = basicFuns.escape_md2(words[_current_word_index].translation)
 
         answer = f"Слово '{word}'\nПеревод: '||{translation}||'"
 
@@ -77,15 +81,19 @@ async def repeat_cards(callback: CallbackQuery, state: FSMContext):
         await state.update_data(current_word_index=_current_word_index + 1)
     else:
         len_words = len(words)
-        len_true_answers = len(true_indexes)
-        percentage = round((len_true_answers / len_words) * 100, 2) if len_words > 0 else 0
-
-        if percentage < 100:
-            await callback.message.answer(f"Вы прошли карточки на {percentage}%!\n",
-                                    reply_markup=kb.cards_end_keyboard)
-            
-            words = basicFuns.delete_current_indexes(words, true_indexes)
-            await state_setup(state, module_name, words)
+        if len_words == 0:
+            await callback.message.answer("⚠️ Карточки не найдены, модуль пустой",
+                                          reply_markup=kb.to_start_menu)
         else:
-            await callback.message.answer(f"Вы прошли все карточки на все {percentage}%!\nГерой сионизма!\n",
-                                    reply_markup=kb.to_start_menu)
+            len_true_answers = len(true_indexes)
+            percentage = round((len_true_answers / len_words) * 100, 2) if len_words > 0 else 0
+
+            if percentage < 100:
+                await callback.message.answer(f"Вы прошли карточки на {percentage}%!\n",
+                                        reply_markup=kb.cards_end_keyboard)
+                
+                words = basicFuns.delete_current_indexes(words, true_indexes)
+                await state_setup(state, module_id, words)
+            else:
+                await callback.message.answer(f"Вы прошли все карточки на все {percentage}%!\nГерой сионизма!",
+                                        reply_markup=kb.to_start_menu)

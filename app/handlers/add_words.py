@@ -27,10 +27,11 @@ async def show_modules_to_add_words(message: Message):
                          reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_ADD_WORDS))
     await message.delete()
 
-@router.callback_query(F.data.startswith('add_word_module__'))
+@router.callback_query(F.data.startswith('addwrdmdl_'))
 async def add_word_to_current_module(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    module_name = callback.data[17:]
+    module_id = int(callback.data.removeprefix('addwrdmdl_').strip())
+    module_name = await requests.get_module_name_by_id(callback.from_user.id, module_id)
 
     await state.update_data(name=module_name)
     await callback.message.answer(f"Вы выбрали модуль '{module_name}'.\nВведите слово, которое вы хотите добавить в модуль", 

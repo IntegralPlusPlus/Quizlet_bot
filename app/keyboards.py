@@ -39,13 +39,13 @@ async def show_modules(user_id, show_status):
     
     callback_start_str = ""
     if show_status == ShowModulesStates.TO_ADD_WORDS:
-        callback_start_str = "add_word_module__"
+        callback_start_str = "addwrdmdl_"
     elif show_status == ShowModulesStates.TO_PRINT_MODULE:
         callback_start_str = "prntmdl__"
     elif show_status == ShowModulesStates.TO_DELETE:
         callback_start_str = "dltmdl_"
     elif show_status == ShowModulesStates.TO_REPEAT:
-        callback_start_str = "repeat_module__"
+        callback_start_str = "rptmdl_"
 
     for module in modules:
         keyboard.add(InlineKeyboardButton(text = module.name, callback_data = callback_start_str + f"{module.id}"))
