@@ -1,7 +1,7 @@
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton, 
                             InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from app.database.models import Module, Word
+from app.database.models import User, Module, Word
 import app.database.requests as requests
 from enum import Enum
 
@@ -41,14 +41,14 @@ async def show_modules(user_id, show_status):
     if show_status == ShowModulesStates.TO_ADD_WORDS:
         callback_start_str = "add_word_module__"
     elif show_status == ShowModulesStates.TO_PRINT_MODULE:
-        callback_start_str = "print_module__"
+        callback_start_str = "prntmdl__"
     elif show_status == ShowModulesStates.TO_DELETE:
-        callback_start_str = "delete_module__"
+        callback_start_str = "dltmdl_"
     elif show_status == ShowModulesStates.TO_REPEAT:
         callback_start_str = "repeat_module__"
 
     for module in modules:
-        keyboard.add(InlineKeyboardButton(text = module, callback_data = callback_start_str + f"{module}"))
+        keyboard.add(InlineKeyboardButton(text = module.name, callback_data = callback_start_str + f"{module.id}"))
 
     keyboard.add(InlineKeyboardButton(text = 'На главную', callback_data = 'to_start_menu'))
 
@@ -62,13 +62,13 @@ delete_module_or_word = InlineKeyboardMarkup(
     ],
 )
 
-async def show_words(user_id, module_name):
-    words = await requests.get_words(user_id, module_name)
+async def show_words(module_id):
+    words = await requests.get_words(module_id)
     keyboard = InlineKeyboardBuilder()
 
-    for word, translation in words:
-        keyboard.add(InlineKeyboardButton(text = f"{word} - {translation}",
-                                           callback_data = f"delete_word__{word}|p|a|s|s|w|o|r|d|{translation}"))
+    for my_word in words:
+        keyboard.add(InlineKeyboardButton(text = f"{my_word.word} - {my_word.translation}",
+                                           callback_data = f"dltwrd_{my_word.id}"))
 
     keyboard.add(InlineKeyboardButton(text = 'На главную', callback_data = 'to_start_menu'))
 

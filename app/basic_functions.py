@@ -6,8 +6,8 @@ def get_words_to_print(words):
     
     result = "Слова в модуле:\n"
     index = 1
-    for word, translation in words:
-        result += f"{index}) {LRM}{word} - {LRM}{translation}\n"
+    for word in words:
+        result += f"{index}) {LRM}{word.word} - {LRM}{word.translation}\n"
         index += 1
     
     return result

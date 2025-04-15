@@ -21,7 +21,7 @@ async def create_module(message: Message, state: FSMContext):
 
 @router.message(F.text == 'Добавить слово в существующий модуль')
 async def show_modules_to_add_words(message: Message):
-    await message.answer('Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
+    await message.answer('⌛️ Подготавливаю список модулей...', reply_markup=ReplyKeyboardRemove())
 
     await message.answer("Выберите модуль, в который хотите добавить слово", 
                          reply_markup=await kb.show_modules(message.from_user.id, kb.ShowModulesStates.TO_ADD_WORDS))
@@ -44,7 +44,7 @@ async def module_name(message: Message, state: FSMContext):
     
     await requests.set_module(message.from_user.id, message.from_user.username, module_name)
 
-    await message.answer(f"Модуль '{module_name}' успешно создан!\n", reply_markup=kb.add_new_word_to_module)
+    await message.answer(f"✅ Модуль '{module_name}' успешно создан!\n", reply_markup=kb.add_new_word_to_module)
 
 @router.callback_query(F.data == 'add_word')
 async def add_word(callback: CallbackQuery, state: FSMContext):
@@ -69,6 +69,6 @@ async def write_word_and_translation(message: Message, state: FSMContext):
     await requests.set_word(message.from_user.id, module_name, word, translation)
 
     await message.answer(
-        f"Слово '{word}' с переводом '{translation}' успешно добавлено в модуль '{module_name}'\n"
+        f"✅ Слово '{word}' с переводом '{translation}' успешно добавлено в модуль '{module_name}'\n"
         "Вы можете продолжить работу с ботом, выбрав один из пунктов меню",
         reply_markup=kb.add_new_word_to_module)
