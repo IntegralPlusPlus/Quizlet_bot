@@ -11,7 +11,6 @@ async def set_user(tg_id, username):
             session.add(User(tg_id=tg_id, username=username))
             await session.commit()
 
-
 async def set_module(tg_id, _username, module_name):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
@@ -23,8 +22,7 @@ async def set_module(tg_id, _username, module_name):
             await session.refresh(user)
 
         module = await session.scalar(
-            select(Module).where(Module.name == module_name, Module.user_id == user.id)
-        )
+            select(Module).where(Module.name == module_name, Module.user_id == user.id))
 
         if module is None:
             session.add(Module(name=module_name, user_id=user.id))
@@ -52,9 +50,7 @@ async def get_module_name_by_id(tg_id, module_id):
 
 async def get_word_by_id(module_id, word_id):
     async with async_session() as session:
-        word = await session.scalar(
-            select(Word).where(Word.module_id == module_id, Word.id == word_id)
-        )
+        word = await session.scalar(select(Word).where(Word.module_id == module_id, Word.id == word_id))
 
         if word:
             return word
@@ -67,9 +63,7 @@ async def set_word(tg_id, module_name, word, translation):
         if not user:
             return
 
-        module_id = await session.scalar(
-            select(Module.id).where(Module.user_id == user.id, Module.name == module_name)
-        )
+        module_id = await session.scalar(select(Module.id).where(Module.user_id == user.id, Module.name == module_name))
 
         if module_id is not None:
             new_word = await session.scalar(
@@ -101,9 +95,7 @@ async def delete_module(tg_id, module_id):
         if not user:
             return
 
-        module = await session.scalar(
-            select(Module).where(Module.user_id == user.id, Module.id == module_id)
-        )
+        module = await session.scalar(select(Module).where(Module.user_id == user.id, Module.id == module_id))
 
         if module:
             await session.execute(delete(Word).where(Word.module_id == module_id))
@@ -113,12 +105,7 @@ async def delete_module(tg_id, module_id):
 
 async def delete_word(module_id, word_id):
     async with async_session() as session:
-        word_obj = await session.scalar(
-            select(Word).where(
-                    Word.id == word_id,
-                    Word.module_id == module_id
-                )
-            )
+        word_obj = await session.scalar(select(Word).where(Word.id == word_id, Word.module_id == module_id))
 
         if word_obj:
             await session.delete(word_obj)
