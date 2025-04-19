@@ -46,7 +46,7 @@ async def add_word_to_current_module(callback: CallbackQuery, state: FSMContext)
                                    callback,
                                    basicFuns.MessageType.CALLBACK,
                                    f"Вы выбрали модуль '{module_name}'.\nВведите слово, которое вы хотите добавить в модуль",
-                                   kb.empty_keyboard)#ReplyKeyboardRemove())
+                                   kb.empty_keyboard)
     await state.set_state(CreateModule.word)
 
 @router.message(CreateModule.name)
@@ -70,7 +70,7 @@ async def add_word(callback: CallbackQuery, state: FSMContext):
                                    callback,
                                    basicFuns.MessageType.CALLBACK,
                                    "Введите слово, которое вы хотите добавить в модуль",
-                                   kb.empty_keyboard)#ReplyKeyboardRemove())
+                                   kb.empty_keyboard)
     await state.set_state(CreateModule.word)
 
 @router.message(CreateModule.word)

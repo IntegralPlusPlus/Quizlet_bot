@@ -13,13 +13,15 @@ router = Router()
 
 @router.message(CommandStart())
 async def start_menu(message: Message, state: FSMContext):
-    #await state.clear()
     await requests.set_user(message.from_user.id, message.from_user.username)
     await basicFuns.change_message(state,
                                    message,
                                    basicFuns.MessageType.MESSAGE,
-                                   "Здравствуйте! Приглашаем вас использовать Telegram-бота," + \
-                                   "выполняющего функции личного Quizlet'а!\nПредлагаю начать",
+                                   basicFuns.get_start_message_text())
+    await basicFuns.change_message(state,
+                                   message,
+                                   basicFuns.MessageType.MESSAGE,
+                                   "Выберите один из пунктов меню:",
                                    kb.start_menu,
                                    clear_type=basicFuns.ClearType.CLEAR)
 
