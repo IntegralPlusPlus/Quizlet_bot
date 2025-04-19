@@ -1,4 +1,5 @@
 from aiogram.fsm.context import FSMContext
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from enum import Enum
@@ -10,6 +11,11 @@ class MessageType(Enum):
 class ClearType(Enum):
     CLEAR = 0
     NOT_CLEAR = 1
+
+class KeyboardType(Enum):
+    REPLY = 0
+    INLINE = 1
+    NONE = 2
 
 LRM = "\u200E" # Left-to-right mark for Hebrew text
 
@@ -32,26 +38,54 @@ def escape_md2(text: str) -> str:
 def delete_current_indexes(my_list, indexes):
     return [item for i, item in enumerate(my_list) if i not in indexes]
 
-async def change_message(state: FSMContext, message, message_type, message_text, _reply_markup=None, 
+async def change_message(state: FSMContext, source, message_type, message_text, _reply_markup=None, 
                          _parse_mode=None, clear_type = ClearType.NOT_CLEAR):
     data = await state.get_data()
-    if 'main_message_id' not in data: last_message_id = None
-    else: last_message_id = (await state.get_data())['main_message_id']
+    last_message_id = None
+    keyboard_type = 'none'
+    if 'main_message_id' in data: last_message_id = (await state.get_data())['main_message_id']
+    if 'keyboard_type' in data: keyboard_type = (await state.get_data())['keyboard_type']
 
     if clear_type == ClearType.CLEAR:
         await state.clear()
 
     curr_message = None
     if message_type == MessageType.MESSAGE:
-        if last_message_id: await message.bot.delete_message(message.chat.id, last_message_id)
-        curr_message = await message.bot.send_message(chat_id=message.chat.id,
-                                                      text=message_text,
-                                                      reply_markup=_reply_markup,
-                                                      parse_mode=_parse_mode)
+        if not last_message_id or \
+           isinstance(_reply_markup, ReplyKeyboardMarkup) and keyboard_type != "reply" or \
+           not isinstance(_reply_markup, ReplyKeyboardMarkup) and keyboard_type == "reply":
+            if last_message_id: await source.bot.delete_message(source.chat.id, last_message_id)
+            curr_message = await source.bot.send_message(chat_id=source.chat.id,
+                                                        text=message_text,
+                                                        reply_markup=_reply_markup,
+                                                        parse_mode=_parse_mode)
+        else:
+            curr_message = await source.bot.edit_message_text(chat_id=source.chat.id,
+                                                               message_id=last_message_id,
+                                                               text=message_text,
+                                                               reply_markup=_reply_markup,
+                                                               parse_mode=_parse_mode)
     elif message_type == MessageType.CALLBACK:
-        if last_message_id: await message.bot.delete_message(message.from_user.id, last_message_id)
-        curr_message = await message.message.answer(text=message_text,
-                                                    reply_markup=_reply_markup,
-                                                    parse_mode=_parse_mode)
+        if not last_message_id or \
+           isinstance(_reply_markup, ReplyKeyboardMarkup) and keyboard_type != "reply" or \
+           not isinstance(_reply_markup, ReplyKeyboardMarkup) and keyboard_type == "reply":
+            if last_message_id: await source.bot.delete_message(source.from_user.id, last_message_id)
+            curr_message = await source.bot.send_message(chat_id=source.message.chat.id,
+                                                         text=message_text,
+                                                         reply_markup=_reply_markup,
+                                                         parse_mode=_parse_mode)
+        else:
+            curr_message = await source.bot.edit_message_text(chat_id=source.message.chat.id,
+                                                              message_id=last_message_id,
+                                                              text=message_text,
+                                                              reply_markup=_reply_markup,
+                                                              parse_mode=_parse_mode)
         
     await state.update_data(main_message_id=curr_message.message_id)
+    
+    if isinstance(_reply_markup, InlineKeyboardMarkup):
+        await state.update_data(keyboard_type="inline")
+    elif isinstance(_reply_markup, ReplyKeyboardMarkup):
+        await state.update_data(keyboard_type="reply")
+    else:
+        await state.update_data(keyboard_type="none")

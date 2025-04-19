@@ -11,6 +11,8 @@ class ShowModulesStates(Enum):
     TO_DELETE = 2
     TO_REPEAT = 3
 
+empty_keyboard = InlineKeyboardMarkup(inline_keyboard = [])
+
 start_menu = ReplyKeyboardMarkup(
     keyboard = [
         [KeyboardButton(text = 'Создать новый модуль')],

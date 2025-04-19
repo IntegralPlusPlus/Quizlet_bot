@@ -6,7 +6,7 @@ import os
 from os import getenv
 from dotenv import load_dotenv
 
-load_dotenv() #from config import DATABASE_URL as DATABASE_URL_CONFIG
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
