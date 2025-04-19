@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 import app.keyboards as kb
 import app.database.requests as requests
 import app.basic_functions as basicFuns
+import random
 
 from app.handlers.main_handlers import router
 
@@ -68,15 +69,12 @@ async def repeat_cards(callback: CallbackQuery, state: FSMContext):
         if _current_word_index == 0:
             answer = "Начинаем повторять карточки!\n"
         
-        word = basicFuns.escape_md2(words[_current_word_index].word)
-        translation = basicFuns.escape_md2(words[_current_word_index].translation)
-
+        word = words[_current_word_index].word
         await basicFuns.change_message(state,
                                        callback,
                                        basicFuns.MessageType.CALLBACK,
-                                       f"Слово '{word}'\nПеревод: '||{translation}||'",
-                                       kb.cards_keyboad,
-                                       'MarkdownV2')
+                                       f"Слово '{word}'",
+                                       kb.show_true_answer)
         
         await state.update_data(current_word_index=_current_word_index + 1)
     else:
@@ -104,5 +102,21 @@ async def repeat_cards(callback: CallbackQuery, state: FSMContext):
                 await basicFuns.change_message(state,
                                                callback,
                                                basicFuns.MessageType.CALLBACK,
-                                               f"Вы прошли все карточки на все {percentage}%!\nГерой сионизма!",
+                                               f"Вы прошли все карточки на все {percentage}%! 😎\nГерой сионизма! ✡️",
                                                kb.to_start_menu)
+
+@router.callback_query(F.data == 'show_true_answer')
+async def show_true_answer(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    data = await state.get_data()
+
+    module_id = data.get('module_id')
+    words = data.get('word_list', [])
+    _current_word_index = data.get('current_word_index')
+    translation = words[_current_word_index - 1].translation
+    word = words[_current_word_index - 1].word
+    await basicFuns.change_message(state,
+                                   callback,
+                                   basicFuns.MessageType.CALLBACK,
+                                   f"Перевод слова '{word}': '{translation}'",
+                                   kb.cards_keyboad)

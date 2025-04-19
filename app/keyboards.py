@@ -83,6 +83,13 @@ start_repeat_cards = InlineKeyboardMarkup(
     ],
 )
 
+show_true_answer = InlineKeyboardMarkup(
+    inline_keyboard = [
+        [InlineKeyboardButton(text = 'Показать правильный перевод', callback_data = 'show_true_answer')],
+        [InlineKeyboardButton(text = 'На главную страницу', callback_data = 'to_start_menu')],
+    ],
+)
+
 cards_keyboad = InlineKeyboardMarkup(
     inline_keyboard = [
         [InlineKeyboardButton(text = 'Знаю ✅', callback_data = 'correct_translation'),
